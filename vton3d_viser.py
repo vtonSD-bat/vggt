@@ -309,6 +309,7 @@ parser = argparse.ArgumentParser(description="VGGT demo with viser for 3D visual
 parser.add_argument(
     "--image_folder", type=str, default="examples/kitchen/images/", help="Path to folder containing images"
 )
+parser.add_argument("--model_path", type=str, default="examples/kitchen/model/", help="path to folder containing model weights")
 parser.add_argument("--use_point_map", action="store_true", help="Use point map instead of depth-based points")
 parser.add_argument("--background_mode", action="store_true", help="Run the viser server in background mode")
 parser.add_argument("--port", type=int, default=8080, help="Port number for the viser server")
@@ -331,6 +332,7 @@ def main():
 
     Command-line arguments:
     --image_folder: Path to folder containing input images
+    --model_path: Path to folder containing model weights
     --use_point_map: Use point map instead of depth-based points
     --background_mode: Run the viser server in background mode
     --port: Port number for the viser server
@@ -356,7 +358,7 @@ def main():
     image_names = glob.glob(os.path.join(args.image_folder, "*"))
     print(f"Found {len(image_names)} images")
 
-    images = load_and_preprocess_images(image_names).to(device)
+    images = load_and_preprocess_images(image_names, mode="pad").to(device)
     print(f"Preprocessed images shape: {images.shape}")
 
     print("Running inference...")
@@ -365,9 +367,7 @@ def main():
     with torch.no_grad():
         with torch.cuda.amp.autocast(dtype=dtype):
             #predictions = model(images)
-            predictions = torch.load(
-                r"C:\Users\flori\Documents\BSc_Data-Science_FHNW\Module\BAT\3dvton-bat\frames_florian_16_output\vggt_predictions_scene03.pt",map_location="cpu")
-
+            predictions = torch.load(args.model_path, map_location="cpu")
     print("Converting pose encoding to extrinsic and intrinsic matrices...")
     extrinsic, intrinsic = pose_encoding_to_extri_intri(predictions["pose_enc"], images.shape[-2:])
     predictions["extrinsic"] = extrinsic

@@ -7,7 +7,12 @@ import json
 import argparse
 from typing import List
 
+parser = argparse.ArgumentParser(description="VGGT demo with viser for 3D visualization")
+parser.add_argument(
+    "--image_folder", type=str, default="examples/kitchen/images/", help="Path to folder containing images"
+)
 
+args = parser.parse_args()
 device = "cuda" if torch.cuda.is_available() else "cpu"
 # bfloat16 is supported on Ampere GPUs (Compute Capability 8.0+) 
 dtype = torch.bfloat16 if torch.cuda.get_device_capability()[0] >= 8 else torch.float16
@@ -22,7 +27,7 @@ model.load_state_dict(torch.hub.load_state_dict_from_url(_URL))
 model.eval()
 model = model.to(device)
 
-image_folder = r"./frames_florian_50"
+image_folder = args.image_folder
 max_images = 16
 
 # Load and preprocess example images (replace with your own image paths)
@@ -35,7 +40,7 @@ if len(image_paths) == 0:
 
 print(f"[Info] Lade & preprocess {len(image_paths)} Bilder...")
     
-images = load_and_preprocess_images(image_paths).to(device)
+images = load_and_preprocess_images(image_paths, mode="pad").to(device)
 
 with torch.no_grad():
     with torch.cuda.amp.autocast(dtype=dtype):
@@ -46,5 +51,5 @@ with torch.no_grad():
     for k, v in predictions.items()
 }
 
-torch.save(predictions_cpu, "vggt_predictions_scene03.pt")
+torch.save(predictions_cpu, "vggt_predictions_scene04.pt")
         
